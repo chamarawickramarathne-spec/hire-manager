@@ -1,0 +1,76 @@
+<?php
+require_once '../config/cors.php';
+require_once '../config/database.php';
+
+$database = new Database();
+$db = $database->getConnection();
+
+$method = $_SERVER['REQUEST_METHOD'];
+
+switch ($method) {
+    case 'GET':
+        try {
+            $query = "SELECT s.*, u.full_name as photographer_name, al.level_name as plan_name 
+                      FROM plan_subscriptions s
+                      JOIN users u ON s.photographer_id = u.id
+                      JOIN access_levels al ON s.access_level_id = al.id
+                      ORDER BY s.id DESC";
+            $stmt = $db->query($query);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($data);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["message" => "Error fetching subscriptions", "error" => $e->getMessage()]);
+        }
+        break;
+
+    case 'POST':
+        $data = json_decode(file_get_contents("php://input"));
+        if (!isset($data->photographer_id) || !isset($data->access_level_id) || !isset($data->amount)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Missing required fields"]);
+            break;
+        }
+
+        try {
+            $db->beginTransaction();
+
+            // 1. Insert into plan_subscriptions
+            $query = "INSERT INTO plan_subscriptions 
+                      (photographer_id, access_level_id, amount, payment_date, expiry_date, payment_method, transaction_id, notes) 
+                      VALUES (:p_id, :al_id, :amount, :p_date, :e_date, :method, :t_id, :notes)";
+            
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(":p_id", $data->photographer_id);
+            $stmt->bindParam(":al_id", $data->access_level_id);
+            $stmt->bindParam(":amount", $data->amount);
+            $stmt->bindParam(":p_date", $data->payment_date);
+            $stmt->bindParam(":e_date", $data->expiry_date);
+            $stmt->bindParam(":method", $data->payment_method);
+            $stmt->bindParam(":t_id", $data->transaction_id);
+            $stmt->bindParam(":notes", $data->notes);
+            $stmt->execute();
+
+            // 2. Update user's plan and expiry date
+            $query = "UPDATE users SET access_level_id = :al_id, expire_date = :e_date WHERE id = :p_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(":al_id", $data->access_level_id);
+            $stmt->bindParam(":e_date", $data->expiry_date);
+            $stmt->bindParam(":p_id", $data->photographer_id);
+            $stmt->execute();
+
+            $db->commit();
+            echo json_encode(["message" => "Subscription recorded successfully"]);
+        } catch (Exception $e) {
+            $db->rollBack();
+            http_response_code(500);
+            echo json_encode(["message" => "Error recording subscription", "error" => $e->getMessage()]);
+        }
+        break;
+
+    default:
+        http_response_code(405);
+        echo json_encode(["message" => "Method not allowed"]);
+        break;
+}
+?>
