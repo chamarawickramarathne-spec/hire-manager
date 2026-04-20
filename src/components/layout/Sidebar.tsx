@@ -6,8 +6,7 @@ import {
   CreditCard, 
   Settings, 
   LogOut,
-  ShieldCheck,
-  BarChart3
+  ShieldCheck
 } from 'lucide-react';
 
 interface SidebarProps {
