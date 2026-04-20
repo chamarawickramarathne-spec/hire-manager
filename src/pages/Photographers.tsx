@@ -100,6 +100,27 @@ const Photographers: React.FC = () => {
     }
   }, [activationDate, duration, planType]);
 
+  // Effect to automatically calculate amount when plan or duration changes
+  useEffect(() => {
+    if (planType && planType !== '1' && accessLevels.length > 0) {
+      const selectedPlan = accessLevels.find(al => al.id.toString() === planType);
+      if (selectedPlan) {
+        const basePrice = parseFloat(selectedPlan.package_price) || 0;
+        const discount = parseFloat(selectedPlan.discount_percentage) || 0;
+        const monthlyPrice = basePrice * (1 - (discount / 100));
+        
+        let multiplier = 1;
+        if (duration !== 'custom') {
+          multiplier = parseInt(duration) || 1;
+        }
+        
+        setAmount((monthlyPrice * multiplier).toString());
+      }
+    } else if (planType === '1') {
+      setAmount('0');
+    }
+  }, [planType, duration, accessLevels]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -120,11 +141,11 @@ const Photographers: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [searchTerm]);
 
-  const handleOpenModal = (user: any) => {
+    const handleOpenModal = (user: any) => {
     setSelectedUser(user);
     setPlanType(user.access_level_id.toString());
     setExpireDate(user.expire_date || '');
-    setStatus(user.status);
+    setStatus(user.is_active === 2 ? 'Suspended' : (user.is_active === 1 ? 'Active' : 'Inactive'));
     setDuration('custom');
     setTransactionId('');
     setTransactionMethod('Manual Override');
@@ -364,7 +385,7 @@ const Photographers: React.FC = () => {
                   <div style={{ textAlign: 'right' }}>
                     <PlanBadge plan={userDetails.user.level_name} />
                     <div style={{ marginTop: '4px' }}>
-                      <StatusBadge status={userDetails.user.is_active ? 'Active' : 'Inactive'} />
+                      <StatusBadge status={userDetails.user.status || (userDetails.user.is_active ? 'Active' : 'Inactive')} />
                     </div>
                   </div>
                 </div>
@@ -516,19 +537,20 @@ const Photographers: React.FC = () => {
 
               {planType !== '1' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Payment Amount (LKR)</label>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Payment Amount (LKR) <span style={{ fontWeight: '400' }}>(Auto-calculated)</span></label>
                   <input 
                     type="number" 
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    readOnly
                     placeholder="Enter amount paid"
                     style={{
                       padding: '10px 12px',
-                      background: 'rgba(255,255,255,0.05)',
+                      background: 'rgba(255,255,255,0.02)',
                       border: '1px solid var(--card-border)',
                       borderRadius: '12px',
-                      color: 'white',
-                      outline: 'none'
+                      color: 'var(--text-muted)',
+                      outline: 'none',
+                      cursor: 'not-allowed'
                     }}
                   />
                 </div>

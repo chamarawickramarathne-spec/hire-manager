@@ -25,7 +25,7 @@ try {
     // Active Subscriptions (not expired)
     $active_subscriptions = 0;
     try {
-        $query = "SELECT COUNT(*) as count FROM users WHERE role = 'photographer' AND (expire_date > NOW() OR expire_date IS NULL)";
+        $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id WHERE u.role = 'photographer' AND (u.expire_date > NOW() OR u.expire_date IS NULL OR LOWER(al.level_name) = 'free')";
         $stmt = $db->query($query);
         if ($stmt) {
             $active_subscriptions = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;

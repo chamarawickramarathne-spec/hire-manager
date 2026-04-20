@@ -50,6 +50,22 @@ try {
     // Calculate usage
     $userData['current_storage_gb'] = round(($userData['current_storage_bytes'] ?? 0) / (1024 * 1024 * 1024), 4);
 
+    $is_active = $userData['is_active'];
+    $al_name = $userData['level_name'];
+    $expire_date = $userData['expire_date'];
+
+    if ($is_active == 2) {
+        $userData['status'] = 'Suspended';
+    } elseif ($is_active == 0) {
+        $userData['status'] = 'Inactive';
+    } elseif (strtolower($al_name) === 'free') {
+        $userData['status'] = 'Active';
+    } elseif (!$expire_date) {
+        $userData['status'] = 'Active';
+    } else {
+        $userData['status'] = (strtotime($expire_date) > time()) ? 'Active' : 'Expired';
+    }
+
     echo json_encode([
         "user" => $userData,
         "payment_history" => $history

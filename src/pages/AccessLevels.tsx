@@ -8,7 +8,9 @@ import {
   Edit3,
   Plus,
   X,
-  Save
+  Save,
+  Tag,
+  Percent
 } from 'lucide-react';
 
 const planColors: any = {
@@ -27,6 +29,8 @@ const AccessLevels: React.FC = () => {
   const [editClients, setEditClients] = useState('');
   const [editBookings, setEditBookings] = useState('');
   const [editStorage, setEditStorage] = useState('');
+  const [editPackagePrice, setEditPackagePrice] = useState('');
+  const [editDiscountPercentage, setEditDiscountPercentage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Create Modal State
@@ -35,6 +39,8 @@ const AccessLevels: React.FC = () => {
   const [newClients, setNewClients] = useState('');
   const [newBookings, setNewBookings] = useState('');
   const [newStorage, setNewStorage] = useState('');
+  const [newPackagePrice, setNewPackagePrice] = useState('');
+  const [newDiscountPercentage, setNewDiscountPercentage] = useState('');
   const [isCreatingSaving, setIsCreatingSaving] = useState(false);
 
   const fetchLevels = async () => {
@@ -57,6 +63,8 @@ const AccessLevels: React.FC = () => {
     setEditClients(level.max_clients?.toString() || '');
     setEditBookings(level.max_bookings?.toString() || '');
     setEditStorage(level.max_storage_gb?.toString() || '');
+    setEditPackagePrice(level.package_price?.toString() || '0');
+    setEditDiscountPercentage(level.discount_percentage?.toString() || '0');
   };
 
   const handleSave = async () => {
@@ -68,6 +76,8 @@ const AccessLevels: React.FC = () => {
         max_clients: editClients ? parseInt(editClients) : null,
         max_bookings: editBookings ? parseInt(editBookings) : null,
         max_storage_gb: parseFloat(editStorage) || 0,
+        package_price: parseFloat(editPackagePrice) || 0,
+        discount_percentage: parseFloat(editDiscountPercentage) || 0,
       });
       setEditingLevel(null);
       await fetchLevels();
@@ -91,9 +101,12 @@ const AccessLevels: React.FC = () => {
         max_clients: newClients ? parseInt(newClients) : null,
         max_bookings: newBookings ? parseInt(newBookings) : null,
         max_storage_gb: parseFloat(newStorage) || 0,
+        package_price: parseFloat(newPackagePrice) || 0,
+        discount_percentage: parseFloat(newDiscountPercentage) || 0,
       });
       setIsCreating(false);
       setNewName(''); setNewClients(''); setNewBookings(''); setNewStorage('');
+      setNewPackagePrice(''); setNewDiscountPercentage('');
       await fetchLevels();
     } catch (error) {
       console.error("Create failed:", error);
@@ -202,10 +215,26 @@ const AccessLevels: React.FC = () => {
                   <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Max Storage</span>
                 </div>
               </div>
+              
+              {/* Added Price and Discount Rows */}
+              <div className="flex items-center gap-3">
+                <Tag size={16} color="var(--text-muted)" />
+                <div style={{ fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600' }}>LKR {parseFloat(level.package_price || '0').toLocaleString()}</span>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Package Price</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Percent size={16} color="var(--success)" />
+                <div style={{ fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600', color: 'var(--success)' }}>{parseFloat(level.discount_percentage || '0')}%</span>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Discount</span>
+                </div>
+              </div>
             </div>
 
             <div style={{ 
-              marginTop: '24px', 
+              marginTop: '24px',  
               paddingTop: '16px', 
               borderTop: '1px solid var(--card-border)',
               display: 'flex',
@@ -314,6 +343,31 @@ const AccessLevels: React.FC = () => {
                   placeholder="e.g. 5"
                   style={inputStyle}
                 />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Package Price (LKR)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editPackagePrice}
+                    onChange={(e) => setEditPackagePrice(e.target.value)}
+                    placeholder="e.g. 1500"
+                    style={inputStyle}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Discount (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editDiscountPercentage}
+                    onChange={(e) => setEditDiscountPercentage(e.target.value)}
+                    placeholder="e.g. 10"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
             </div>
 
@@ -436,6 +490,31 @@ const AccessLevels: React.FC = () => {
                   placeholder="e.g. 20"
                   style={inputStyle}
                 />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Package Price (LKR)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={newPackagePrice}
+                    onChange={(e) => setNewPackagePrice(e.target.value)}
+                    placeholder="e.g. 1500"
+                    style={inputStyle}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>Discount (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newDiscountPercentage}
+                    onChange={(e) => setNewDiscountPercentage(e.target.value)}
+                    placeholder="e.g. 10"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
             </div>
 

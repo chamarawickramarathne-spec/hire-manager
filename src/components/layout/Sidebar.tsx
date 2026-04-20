@@ -19,8 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { name: 'Photographers', icon: <Users size={20} />, path: '/photographers' },
     { name: 'Subscriptions', icon: <CreditCard size={20} />, path: '/subscriptions' },
-    { name: 'Access Levels', icon: <ShieldCheck size={20} />, path: '/access-levels' },
-    { name: 'Analytics', icon: <BarChart3 size={20} />, path: '/analytics' },
+    { name: 'Access Levels', icon: <ShieldCheck size={20} />, path: '/access-levels' }
   ];
 
   return (

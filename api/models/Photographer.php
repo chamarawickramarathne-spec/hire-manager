@@ -73,7 +73,7 @@ class Photographer {
                 } catch (Exception $e) {}
 
                 $row['storage_gb'] = round(($row['storage_bytes'] ?? 0) / (1024 * 1024 * 1024), 4);
-                $row['status'] = $this->getStatus($row['expire_date'], $row['is_active']);
+                $row['status'] = $this->getStatus($row['expire_date'], $row['is_active'], $row['al_name'] ?? '');
             }
             
             return $results;
@@ -82,8 +82,10 @@ class Photographer {
         }
     }
 
-    private function getStatus($expire_date, $is_active) {
+    private function getStatus($expire_date, $is_active, $al_name = '') {
+        if ($is_active == 2) return 'Suspended';
         if ($is_active == 0) return 'Inactive';
+        if (strtolower($al_name) === 'free') return 'Active';
         if (!$expire_date) return 'Active';
         return (strtotime($expire_date) > time()) ? 'Active' : 'Expired';
     }
@@ -92,15 +94,18 @@ class Photographer {
         $this->conn->beginTransaction();
         try {
             // 1. Update user record
-            $is_active = ($status === 'Active') ? 1 : 0;
+            $is_active = 1;
+            if ($status === 'Inactive') $is_active = 0;
+            if ($status === 'Suspended') $is_active = 2;
+            
             $query = "UPDATE " . $this->table_name . " 
                       SET access_level_id = :level_id, expire_date = :expire_date, is_active = :is_active
                       WHERE id = :id";
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(":level_id", $level_id);
-            $stmt->bindParam(":expire_date", $expire_date);
-            $stmt->bindParam(":is_active", $is_active);
-            $stmt->bindParam(":id", $id);
+            $stmt->bindValue(":level_id", $level_id, PDO::PARAM_INT);
+            $stmt->bindValue(":expire_date", $expire_date === '' ? null : $expire_date);
+            $stmt->bindValue(":is_active", $is_active, PDO::PARAM_INT);
+            $stmt->bindValue(":id", $id, PDO::PARAM_INT);
             $stmt->execute();
 
             // 2. If activation date provided, record a subscription entry

@@ -32,12 +32,20 @@ switch ($method) {
             $query = "UPDATE access_levels SET 
                       max_clients = :m_c, 
                       max_bookings = :m_b, 
-                      max_storage_gb = :m_s 
+                      max_storage_gb = :m_s,
+                      package_price = :p_p,
+                      discount_percentage = :d_p
                       WHERE id = :id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(":m_c", $data->max_clients);
             $stmt->bindParam(":m_b", $data->max_bookings);
             $stmt->bindParam(":m_s", $data->max_storage_gb);
+            
+            $package_price = isset($data->package_price) ? $data->package_price : 0;
+            $discount_percentage = isset($data->discount_percentage) ? $data->discount_percentage : 0;
+            $stmt->bindParam(":p_p", $package_price);
+            $stmt->bindParam(":d_p", $discount_percentage);
+            
             $stmt->bindParam(":id", $data->id);
             $stmt->execute();
             echo json_encode(["message" => "Access level updated successfully"]);
@@ -56,13 +64,19 @@ switch ($method) {
         }
 
         try {
-            $query = "INSERT INTO access_levels (level_name, max_clients, max_bookings, max_storage_gb)
-                      VALUES (:name, :m_c, :m_b, :m_s)";
+            $query = "INSERT INTO access_levels (level_name, max_clients, max_bookings, max_storage_gb, package_price, discount_percentage)
+                      VALUES (:name, :m_c, :m_b, :m_s, :p_p, :d_p)";
             $stmt = $db->prepare($query);
             $stmt->bindParam(":name", $data->level_name);
             $stmt->bindParam(":m_c", $data->max_clients);
             $stmt->bindParam(":m_b", $data->max_bookings);
             $stmt->bindParam(":m_s", $data->max_storage_gb);
+
+            $package_price = isset($data->package_price) ? $data->package_price : 0;
+            $discount_percentage = isset($data->discount_percentage) ? $data->discount_percentage : 0;
+            $stmt->bindParam(":p_p", $package_price);
+            $stmt->bindParam(":d_p", $discount_percentage);
+
             $stmt->execute();
             $newId = $db->lastInsertId();
             echo json_encode(["message" => "Access level created successfully", "id" => $newId]);
