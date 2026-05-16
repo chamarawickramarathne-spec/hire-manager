@@ -11,13 +11,20 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case 'GET':
         try {
-            if ($app === 'workshop') {
-                $query = "SELECT id, name as level_name, max_students_per_workshop as max_clients, max_workshops as max_bookings, max_slip_size_mb as max_storage_gb, price as package_price, 0 as discount_percentage FROM packages ORDER BY id ASC";
-            } else {
-                $query = "SELECT * FROM access_levels ORDER BY id ASC";
+            $data = [];
+            try {
+                if ($app === 'workshop') {
+                    $query = "SELECT id, name as level_name, max_students_per_workshop as max_clients, max_workshops as max_bookings, max_slip_size_mb as max_storage_gb, price as package_price, 0 as discount_percentage FROM packages ORDER BY id ASC";
+                } else {
+                    $query = "SELECT * FROM access_levels ORDER BY id ASC";
+                }
+                $stmt = $db->query($query);
+                if ($stmt) {
+                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+            } catch (Exception $e) {
+                // Table might not exist for this app (e.g., calculator)
             }
-            $stmt = $db->query($query);
-            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($data);
         } catch (Exception $e) {
             http_response_code(500);

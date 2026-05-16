@@ -36,13 +36,19 @@ class Photographer {
         $query .= " ORDER BY u.created_at DESC";
 
         try {
-            $stmt = $this->conn->prepare($query);
-            if ($search) {
-                $search = "%{$search}%";
-                $stmt->bindParam(":search", $search);
+            $results = [];
+            try {
+                $stmt = $this->conn->prepare($query);
+                if ($search) {
+                    $search = "%{$search}%";
+                    $stmt->bindParam(":search", $search);
+                }
+                $stmt->execute();
+                $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $e) {
+                // Return empty array if tables don't exist (e.g. for calculator app)
+                return [];
             }
-            $stmt->execute();
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Fetch additional stats safely for each photographer
             foreach ($results as &$row) {
