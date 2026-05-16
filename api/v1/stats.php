@@ -37,7 +37,7 @@ try {
     // Active Photographers (Subscriptions)
     try {
         if ($app === 'workshop') {
-             $query = "SELECT COUNT(*) as count FROM users u JOIN packages pk ON u.package_id = pk.id WHERE (u.is_active = 1 OR u.is_active IS NULL)";
+             $query = "SELECT COUNT(*) as count FROM users u JOIN packages pk ON u.package_id = pk.id";
         } else {
             $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id 
                       WHERE u.role = 'photographer' AND (u.is_active = 1 OR u.is_active IS NULL) 
