@@ -12,9 +12,16 @@ if (!$db) {
     exit;
 }
 
+$total_photographers = 0;
+$active_subscriptions = 0;
+$total_revenue = 0;
+$monthly_revenue = 0;
+$recent_signups = [];
+$plan_distribution = [];
+$history = [];
+
 try {
     // Total Photographers
-    $total_photographers = 0;
     try {
         if ($app === 'workshop') {
             $query = "SELECT COUNT(*) as count FROM users";
@@ -23,27 +30,26 @@ try {
         }
         $stmt = $db->query($query);
         if ($stmt) {
-            $total_photographers = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
+            $total_photographers = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
         }
     } catch (Exception $e) {}
 
-    // Active Subscriptions
-    $active_subscriptions = 0;
+    // Active Photographers (Subscriptions)
     try {
         if ($app === 'workshop') {
-             // In workshop, everyone has a package_id. We'll count non-free packages if possible, but for now just count all users as they are all "active"
-             $query = "SELECT COUNT(*) as count FROM users u JOIN packages pk ON u.package_id = pk.id";
+             $query = "SELECT COUNT(*) as count FROM users u JOIN packages pk ON u.package_id = pk.id WHERE (u.is_active = 1 OR u.is_active IS NULL)";
         } else {
-            $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id WHERE u.role = 'photographer' AND (u.expire_date > NOW() OR u.expire_date IS NULL OR LOWER(al.level_name) = 'free')";
+            $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id 
+                      WHERE u.role = 'photographer' AND (u.is_active = 1 OR u.is_active IS NULL) 
+                      AND (u.expire_date > NOW() OR u.expire_date IS NULL OR LOWER(al.level_name) = 'free')";
         }
         $stmt = $db->query($query);
         if ($stmt) {
-            $active_subscriptions = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
+            $active_subscriptions = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
         }
     } catch (Exception $e) {}
 
     // Total Revenue
-    $total_revenue = 0;
     try {
         if ($app === 'workshop') {
             $query = "SELECT SUM(amount_paid) as total FROM join_requests WHERE status = 'approved'";
@@ -52,12 +58,11 @@ try {
         }
         $stmt = $db->query($query);
         if ($stmt) {
-            $total_revenue = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+            $total_revenue = (float)($stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
         }
     } catch (Exception $e) {}
 
     // Revenue Last 30 Days
-    $monthly_revenue = 0;
     try {
         if ($app === 'workshop') {
             $query = "SELECT SUM(amount_paid) as total FROM join_requests WHERE status = 'approved' AND created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)";
@@ -66,12 +71,12 @@ try {
         }
         $stmt = $db->query($query);
         if ($stmt) {
-            $monthly_revenue = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+            $monthly_revenue = (float)($stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
         }
     } catch (Exception $e) {}
 
     // Recent Signups (Last 5)
-    $recent_signups = [];
+    try {
         if ($app === 'workshop') {
             $query = "SELECT COALESCE(p.display_name, 'New User') as name, u.email, u.created_at, pk.name as plan 
                       FROM users u
@@ -92,7 +97,6 @@ try {
     } catch (Exception $e) {}
 
     // Plan Distribution
-    $plan_distribution = [];
     try {
         if ($app === 'workshop') {
             $query = "SELECT pk.name as level_name, COUNT(u.id) as count 
@@ -113,8 +117,6 @@ try {
 
     // Revenue History for Chart
     $period = $_GET['period'] ?? '7days';
-    $history = [];
-    
     try {
         if ($app === 'workshop') {
             $date_col = 'created_at';

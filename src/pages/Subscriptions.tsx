@@ -78,9 +78,9 @@ const Subscriptions: React.FC = () => {
           <div style={{ marginTop: '8px', color: 'var(--success)', fontSize: '12px', fontWeight: '600' }}>{successRate}% success rate</div>
         </div>
         <div className="glass shadow-elegant" style={{ padding: '24px' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '8px' }}>Total Photographers</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '8px' }}>Active Photographers</div>
           <div style={{ fontSize: '24px', fontWeight: '700' }}>{activePhotographers}</div>
-          <div style={{ marginTop: '8px', color: 'var(--primary)', fontSize: '12px', fontWeight: '600' }}>Active</div>
+          <div style={{ marginTop: '8px', color: 'var(--primary)', fontSize: '12px', fontWeight: '600' }}>Current</div>
         </div>
       </div>
 

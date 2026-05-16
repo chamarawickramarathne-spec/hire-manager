@@ -112,7 +112,7 @@ const Dashboard: React.FC = () => {
           trendValue="+0%" 
         />
         <StatCard 
-          title="Active Subscriptions" 
+          title="Active Photographers" 
           value={totals.active_subscriptions.toString()} 
           icon={<CreditCard size={24} />} 
           trend="up" 
