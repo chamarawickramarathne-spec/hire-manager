@@ -11,11 +11,20 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case 'GET':
         try {
-            $query = "SELECT s.*, u.full_name as photographer_name, al.level_name as plan_name 
-                      FROM plan_subscriptions s
-                      JOIN users u ON s.photographer_id = u.id
-                      JOIN access_levels al ON s.access_level_id = al.id
-                      ORDER BY s.id DESC";
+            if ($app === 'workshop') {
+                $query = "SELECT jr.id, jr.student_name as photographer_name, e.event_name as plan_name, 
+                                 jr.amount_paid as amount, jr.created_at as payment_date, 
+                                 'Online/Slip' as payment_method, jr.status, jr.payment_slip_url as transaction_id
+                          FROM join_requests jr
+                          JOIN events e ON jr.event_id = e.id
+                          ORDER BY jr.created_at DESC";
+            } else {
+                $query = "SELECT s.*, u.full_name as photographer_name, al.level_name as plan_name 
+                          FROM plan_subscriptions s
+                          JOIN users u ON s.photographer_id = u.id
+                          JOIN access_levels al ON s.access_level_id = al.id
+                          ORDER BY s.id DESC";
+            }
             $stmt = $db->query($query);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($data);
@@ -26,6 +35,11 @@ switch ($method) {
         break;
 
     case 'POST':
+        if ($app === 'workshop') {
+            http_response_code(400);
+            echo json_encode(["message" => "Subscription recording not supported for this app via this endpoint"]);
+            break;
+        }
         $data = json_decode(file_get_contents("php://input"));
         if (!isset($data->photographer_id) || !isset($data->access_level_id) || !isset($data->amount)) {
             http_response_code(400);

@@ -16,17 +16,26 @@ try {
     // Total Photographers
     $total_photographers = 0;
     try {
-        $query = "SELECT COUNT(*) as count FROM users WHERE role = 'photographer'";
+        if ($app === 'workshop') {
+            $query = "SELECT COUNT(*) as count FROM users";
+        } else {
+            $query = "SELECT COUNT(*) as count FROM users WHERE role = 'photographer'";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $total_photographers = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
         }
     } catch (Exception $e) {}
 
-    // Active Subscriptions (not expired)
+    // Active Subscriptions
     $active_subscriptions = 0;
     try {
-        $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id WHERE u.role = 'photographer' AND (u.expire_date > NOW() OR u.expire_date IS NULL OR LOWER(al.level_name) = 'free')";
+        if ($app === 'workshop') {
+             // In workshop, everyone has a package_id. We'll count non-free packages if possible, but for now just count all users as they are all "active"
+             $query = "SELECT COUNT(*) as count FROM users u JOIN packages pk ON u.package_id = pk.id";
+        } else {
+            $query = "SELECT COUNT(u.id) as count FROM users u LEFT JOIN access_levels al ON u.access_level_id = al.id WHERE u.role = 'photographer' AND (u.expire_date > NOW() OR u.expire_date IS NULL OR LOWER(al.level_name) = 'free')";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $active_subscriptions = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
@@ -36,7 +45,11 @@ try {
     // Total Revenue
     $total_revenue = 0;
     try {
-        $query = "SELECT SUM(amount) as total FROM plan_subscriptions";
+        if ($app === 'workshop') {
+            $query = "SELECT SUM(amount_paid) as total FROM join_requests WHERE status = 'approved'";
+        } else {
+            $query = "SELECT SUM(amount) as total FROM plan_subscriptions";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $total_revenue = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
@@ -46,7 +59,11 @@ try {
     // Revenue Last 30 Days
     $monthly_revenue = 0;
     try {
-        $query = "SELECT SUM(amount) as total FROM plan_subscriptions WHERE payment_date > DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        if ($app === 'workshop') {
+            $query = "SELECT SUM(amount_paid) as total FROM join_requests WHERE status = 'approved' AND created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        } else {
+            $query = "SELECT SUM(amount) as total FROM plan_subscriptions WHERE payment_date > DATE_SUB(NOW(), INTERVAL 30 DAY)";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $monthly_revenue = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
@@ -55,12 +72,19 @@ try {
 
     // Recent Signups (Last 5)
     $recent_signups = [];
-    try {
-        $query = "SELECT u.full_name as name, u.email, u.created_at, al.level_name as plan 
-                  FROM users u
-                  LEFT JOIN access_levels al ON u.access_level_id = al.id
-                  WHERE u.role = 'photographer' 
-                  ORDER BY u.created_at DESC LIMIT 5";
+        if ($app === 'workshop') {
+            $query = "SELECT COALESCE(p.display_name, 'New User') as name, u.email, u.created_at, pk.name as plan 
+                      FROM users u
+                      LEFT JOIN profiles p ON u.id = p.user_id
+                      LEFT JOIN packages pk ON u.package_id = pk.id
+                      ORDER BY u.created_at DESC LIMIT 5";
+        } else {
+            $query = "SELECT u.full_name as name, u.email, u.created_at, al.level_name as plan 
+                      FROM users u
+                      LEFT JOIN access_levels al ON u.access_level_id = al.id
+                      WHERE u.role = 'photographer' 
+                      ORDER BY u.created_at DESC LIMIT 5";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $recent_signups = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -70,10 +94,17 @@ try {
     // Plan Distribution
     $plan_distribution = [];
     try {
-        $query = "SELECT al.level_name, COUNT(u.id) as count 
-                  FROM access_levels al 
-                  LEFT JOIN users u ON u.access_level_id = al.id 
-                  GROUP BY al.id, al.level_name";
+        if ($app === 'workshop') {
+            $query = "SELECT pk.name as level_name, COUNT(u.id) as count 
+                      FROM packages pk 
+                      LEFT JOIN users u ON u.package_id = pk.id 
+                      GROUP BY pk.id, pk.name";
+        } else {
+            $query = "SELECT al.level_name, COUNT(u.id) as count 
+                      FROM access_levels al 
+                      LEFT JOIN users u ON u.access_level_id = al.id 
+                      GROUP BY al.id, al.level_name";
+        }
         $stmt = $db->query($query);
         if ($stmt) {
             $plan_distribution = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -85,24 +116,36 @@ try {
     $history = [];
     
     try {
+        if ($app === 'workshop') {
+            $date_col = 'created_at';
+            $amt_col = 'amount_paid';
+            $table = 'join_requests';
+            $where = "WHERE status = 'approved'";
+        } else {
+            $date_col = 'payment_date';
+            $amt_col = 'amount';
+            $table = 'plan_subscriptions';
+            $where = "WHERE 1=1";
+        }
+
         if ($period === '12months') {
-            $query = "SELECT DATE_FORMAT(payment_date, '%b') as name, SUM(amount) as revenue 
-                      FROM plan_subscriptions 
-                      WHERE payment_date > DATE_SUB(NOW(), INTERVAL 12 MONTH)
-                      GROUP BY MONTH(payment_date), name
-                      ORDER BY payment_date ASC";
+            $query = "SELECT DATE_FORMAT($date_col, '%b') as name, SUM($amt_col) as revenue 
+                      FROM $table 
+                      $where AND $date_col > DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                      GROUP BY MONTH($date_col), name
+                      ORDER BY $date_col ASC";
         } elseif ($period === '30days') {
-            $query = "SELECT DATE_FORMAT(payment_date, '%d %b') as name, SUM(amount) as revenue 
-                      FROM plan_subscriptions 
-                      WHERE payment_date > DATE_SUB(NOW(), INTERVAL 30 DAY)
-                      GROUP BY DATE(payment_date), name
-                      ORDER BY payment_date ASC";
+            $query = "SELECT DATE_FORMAT($date_col, '%d %b') as name, SUM($amt_col) as revenue 
+                      FROM $table 
+                      $where AND $date_col > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                      GROUP BY DATE($date_col), name
+                      ORDER BY $date_col ASC";
         } else { // 7days
-            $query = "SELECT DATE_FORMAT(payment_date, '%a') as name, SUM(amount) as revenue 
-                      FROM plan_subscriptions 
-                      WHERE payment_date > DATE_SUB(NOW(), INTERVAL 7 DAY)
-                      GROUP BY DATE(payment_date), name
-                      ORDER BY payment_date ASC";
+            $query = "SELECT DATE_FORMAT($date_col, '%a') as name, SUM($amt_col) as revenue 
+                      FROM $table 
+                      $where AND $date_col > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                      GROUP BY DATE($date_col), name
+                      ORDER BY $date_col ASC";
         }
         $stmt = $db->query($query);
         if ($stmt) {

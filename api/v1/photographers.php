@@ -6,7 +6,7 @@ require_once '../models/Photographer.php';
 $app = $_GET['app'] ?? $_POST['app'] ?? 'lens_manager';
 $database = new Database($app);
 $db = $database->getConnection();
-$photographer = new Photographer($db);
+$photographer = new Photographer($db, $app);
 
 $method = $_SERVER['REQUEST_METHOD'];
 

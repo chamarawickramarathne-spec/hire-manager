@@ -16,14 +16,26 @@ if (!$userId) {
 
 try {
     // 1. Get User and Plan Info
-    $query = "SELECT u.id, u.full_name as name, u.email, u.expire_date, u.created_at, u.is_active,
-                     al.level_name, al.max_clients, al.max_bookings, al.max_storage_gb,
-                     (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as current_clients,
-                     (SELECT COUNT(*) FROM bookings WHERE user_id = u.id) as current_bookings,
-                     (SELECT SUM(gi.file_size) FROM gallery_images gi JOIN galleries g ON gi.gallery_id = g.id WHERE g.user_id = u.id) as current_storage_bytes
-              FROM users u
-              LEFT JOIN access_levels al ON u.access_level_id = al.id
-              WHERE u.id = :id AND u.role = 'photographer'";
+    if ($app === 'workshop') {
+        $query = "SELECT u.id, p.display_name as name, u.email, NULL as expire_date, u.created_at, 1 as is_active,
+                         pk.name as level_name, pk.max_students_per_workshop as max_clients, pk.max_workshops as max_bookings, pk.max_slip_size_mb as max_storage_gb,
+                         (SELECT COUNT(*) FROM join_requests jr JOIN events e ON jr.event_id = e.id WHERE e.user_id = u.id) as current_clients,
+                         (SELECT COUNT(*) FROM events WHERE user_id = u.id) as current_bookings,
+                         0 as current_storage_bytes
+                  FROM users u
+                  LEFT JOIN profiles p ON u.id = p.user_id
+                  LEFT JOIN packages pk ON u.package_id = pk.id
+                  WHERE u.id = :id";
+    } else {
+        $query = "SELECT u.id, u.full_name as name, u.email, u.expire_date, u.created_at, u.is_active,
+                         al.level_name, al.max_clients, al.max_bookings, al.max_storage_gb,
+                         (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as current_clients,
+                         (SELECT COUNT(*) FROM bookings WHERE user_id = u.id) as current_bookings,
+                         (SELECT SUM(gi.file_size) FROM gallery_images gi JOIN galleries g ON gi.gallery_id = g.id WHERE g.user_id = u.id) as current_storage_bytes
+                  FROM users u
+                  LEFT JOIN access_levels al ON u.access_level_id = al.id
+                  WHERE u.id = :id AND u.role = 'photographer'";
+    }
     
     $stmt = $db->prepare($query);
     $stmt->bindParam(":id", $userId);
@@ -37,11 +49,21 @@ try {
     }
 
     // 2. Get Payment History
-    $query = "SELECT s.*, al.level_name as plan_name 
-              FROM plan_subscriptions s
-              JOIN access_levels al ON s.access_level_id = al.id
-              WHERE s.photographer_id = :id
-              ORDER BY s.id DESC";
+    if ($app === 'workshop') {
+        // For workshop, we'll show events joined by the user as "payment history" or nothing if they don't have personal subscriptions
+        $query = "SELECT jr.id, e.event_name as plan_name, jr.amount_paid as amount, jr.created_at as payment_date, 'Online' as payment_method, jr.status
+                  FROM join_requests jr
+                  JOIN events e ON jr.event_id = e.id
+                  JOIN users u ON e.user_id = u.id
+                  WHERE u.id = :id
+                  ORDER BY jr.id DESC";
+    } else {
+        $query = "SELECT s.*, al.level_name as plan_name 
+                  FROM plan_subscriptions s
+                  JOIN access_levels al ON s.access_level_id = al.id
+                  WHERE s.photographer_id = :id
+                  ORDER BY s.id DESC";
+    }
     
     $stmt = $db->prepare($query);
     $stmt->bindParam(":id", $userId);
@@ -52,14 +74,14 @@ try {
     $userData['current_storage_gb'] = round(($userData['current_storage_bytes'] ?? 0) / (1024 * 1024 * 1024), 4);
 
     $is_active = $userData['is_active'];
-    $al_name = $userData['level_name'];
+    $al_name = $userData['level_name'] ?? 'None';
     $expire_date = $userData['expire_date'];
 
     if ($is_active == 2) {
         $userData['status'] = 'Suspended';
     } elseif ($is_active == 0) {
         $userData['status'] = 'Inactive';
-    } elseif (strtolower($al_name) === 'free') {
+    } elseif (strtolower($al_name) === 'free' || $app === 'workshop') {
         $userData['status'] = 'Active';
     } elseif (!$expire_date) {
         $userData['status'] = 'Active';

@@ -207,11 +207,11 @@ const Dashboard: React.FC = () => {
                   color: `hsla(${(i+1) * 60}, 70%, 50%, 1)`,
                   fontWeight: 'bold'
                 }}>
-                  {usr.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                  {(usr.name || 'User').split(' ').map((n: string) => n ? n[0] : '').join('').toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '14px', fontWeight: '600' }}>
-                    {usr.name}
+                    {usr.name || 'User'}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                     {new Date(usr.created_at).toLocaleDateString()}
