@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Users,
   LayoutDashboard,
@@ -20,8 +20,21 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
+  const navigate = useNavigate();
   const { currentApp, setCurrentApp, appTitle } = useAppContext();
   const [showAppSelector, setShowAppSelector] = useState(false);
+
+  const handleAppChange = (appId: AppType) => {
+    setCurrentApp(appId);
+    setShowAppSelector(false);
+    
+    // Automatic navigation based on selected app
+    if (appId === 'calculator') {
+      navigate('/access-logs');
+    } else {
+      navigate('/');
+    }
+  };
 
   const apps: { id: AppType; name: string; icon: React.ReactNode; color: string }[] = [
     { id: 'lens_manager', name: 'Lens Booking Pro', icon: <Camera size={18} />, color: '#6366f1' },
@@ -136,10 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
               {apps.map(app => (
                 <button
                   key={app.id}
-                  onClick={() => {
-                    setCurrentApp(app.id);
-                    setShowAppSelector(false);
-                  }}
+                  onClick={() => handleAppChange(app.id)}
                   style={{
                     width: '100%',
                     display: 'flex',
