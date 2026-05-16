@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { History, Search, RefreshCw, Clock, Globe, User, ChevronRight, ChevronDown, Monitor } from 'lucide-react';
+import { History, Search, RefreshCw, Clock, Globe, ChevronRight, ChevronDown, Monitor } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useAppContext } from '../context/AppContext';
 

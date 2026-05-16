@@ -57,7 +57,7 @@ import { useAppContext } from '../context/AppContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { currentApp, appTitle } = useAppContext();
+  const { currentApp } = useAppContext();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('7days');
