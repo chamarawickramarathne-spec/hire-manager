@@ -53,16 +53,20 @@ const StatCard = ({ title, value, icon, trend, trendValue }: any) => (
   </div>
 );
 
+import { useAppContext } from '../context/AppContext';
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { currentApp, appTitle } = useAppContext();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('7days');
 
   useEffect(() => {
     const fetchStats = async () => {
+      setLoading(true);
       try {
-        const data = await apiClient.getStats(period);
+        const data = await apiClient.getStats(period, currentApp);
         setStats(data);
       } catch (error) {
         console.error("Failed to fetch stats:", error);
@@ -71,7 +75,7 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchStats();
-  }, [period]);
+  }, [period, currentApp]);
 
   if (loading) {
     return (

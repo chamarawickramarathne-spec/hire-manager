@@ -1,7 +1,9 @@
 import React from 'react';
 import { Bell, User } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 
 const Header: React.FC = () => {
+  const { appTitle } = useAppContext();
   return (
     <header className="glass" style={{
       height: '72px',
@@ -14,7 +16,7 @@ const Header: React.FC = () => {
       top: '16px',
       zIndex: 10
     }}>
-      <div></div>
+      <div style={{ fontSize: '18px', fontWeight: '700', letterSpacing: '-0.5px' }}>{appTitle}</div>
 
       <div className="header-actions" style={{
         display: 'flex',

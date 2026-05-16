@@ -2,7 +2,8 @@
 require_once '../config/cors.php';
 require_once '../config/database.php';
 
-$database = new Database();
+$app = $_GET['app'] ?? $_POST['app'] ?? 'lens_manager';
+$database = new Database($app);
 $db = $database->getConnection();
 
 $userId = isset($_GET['id']) ? $_GET['id'] : null;

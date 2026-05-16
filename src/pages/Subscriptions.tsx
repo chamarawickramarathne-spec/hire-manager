@@ -8,7 +8,10 @@ import {
 
 // Mock data removed in favor of API
 
+import { useAppContext } from '../context/AppContext';
+
 const Subscriptions: React.FC = () => {
+  const { currentApp } = useAppContext();
   const [subs, setSubs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +26,11 @@ const Subscriptions: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [data, statsData] = await Promise.all([
-          apiClient.getSubscriptions(),
-          apiClient.getStats()
+          apiClient.getSubscriptions(currentApp),
+          apiClient.getStats('7days', currentApp)
         ]);
         setSubs(data);
         setStats(statsData);
@@ -37,7 +41,7 @@ const Subscriptions: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [currentApp]);
 
   const groupedSubs = [...subs]
     .sort((a, b) => (b.id || 0) - (a.id || 0))

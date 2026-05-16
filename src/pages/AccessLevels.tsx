@@ -20,7 +20,10 @@ const planColors: any = {
   'Unlimited': '#f59e0b'
 };
 
+import { useAppContext } from '../context/AppContext';
+
 const AccessLevels: React.FC = () => {
+  const { currentApp } = useAppContext();
   const [levels, setLevels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,8 +47,9 @@ const AccessLevels: React.FC = () => {
   const [isCreatingSaving, setIsCreatingSaving] = useState(false);
 
   const fetchLevels = async () => {
+    setLoading(true);
     try {
-      const data = await apiClient.getAccessLevels();
+      const data = await apiClient.getAccessLevels(currentApp);
       setLevels(data);
     } catch (error) {
       console.error("Error fetching access levels:", error);
@@ -56,7 +60,7 @@ const AccessLevels: React.FC = () => {
 
   useEffect(() => {
     fetchLevels();
-  }, []);
+  }, [currentApp]);
 
   const openEdit = (level: any) => {
     setEditingLevel(level);
@@ -78,7 +82,7 @@ const AccessLevels: React.FC = () => {
         max_storage_gb: parseFloat(editStorage) || 0,
         package_price: parseFloat(editPackagePrice) || 0,
         discount_percentage: parseFloat(editDiscountPercentage) || 0,
-      });
+      }, currentApp);
       setEditingLevel(null);
       await fetchLevels();
     } catch (error) {
@@ -103,7 +107,7 @@ const AccessLevels: React.FC = () => {
         max_storage_gb: parseFloat(newStorage) || 0,
         package_price: parseFloat(newPackagePrice) || 0,
         discount_percentage: parseFloat(newDiscountPercentage) || 0,
-      });
+      }, currentApp);
       setIsCreating(false);
       setNewName(''); setNewClients(''); setNewBookings(''); setNewStorage('');
       setNewPackagePrice(''); setNewDiscountPercentage('');

@@ -53,7 +53,10 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+import { useAppContext } from '../context/AppContext';
+
 const Photographers: React.FC = () => {
+  const { currentApp } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [photographers, setPhotographers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,10 +126,11 @@ const Photographers: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [usersData, levelsData] = await Promise.all([
-          apiClient.getPhotographers(searchTerm),
-          apiClient.getAccessLevels()
+          apiClient.getPhotographers(searchTerm, currentApp),
+          apiClient.getAccessLevels(currentApp)
         ]);
         setPhotographers(usersData);
         setAccessLevels(levelsData);
@@ -139,7 +143,7 @@ const Photographers: React.FC = () => {
     
     const timeout = setTimeout(fetchData, 300);
     return () => clearTimeout(timeout);
-  }, [searchTerm]);
+  }, [searchTerm, currentApp]);
 
     const handleOpenModal = (user: any) => {
     setSelectedUser(user);
@@ -186,10 +190,11 @@ const Photographers: React.FC = () => {
         activation_date: planType === '1' ? '' : activationDate,
         amount: parseFloat(amount) || 0,
         transaction_id: transactionId,
-        payment_method: transactionMethod
+        payment_method: transactionMethod,
+        app: currentApp
       });
       // Refresh data
-      const data = await apiClient.getPhotographers(searchTerm);
+      const data = await apiClient.getPhotographers(searchTerm, currentApp);
       setPhotographers(data);
       setIsModalOpen(false);
     } catch (error) {
@@ -204,7 +209,7 @@ const Photographers: React.FC = () => {
     setDetailsLoading(true);
     setIsDetailsOpen(true);
     try {
-      const data = await apiClient.getUserDetails(user.id);
+      const data = await apiClient.getUserDetails(user.id, currentApp);
       setUserDetails(data);
     } catch (error) {
       console.error("Failed to fetch details:", error);
