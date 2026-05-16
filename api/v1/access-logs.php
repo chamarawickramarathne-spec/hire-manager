@@ -13,9 +13,16 @@ if (!$db) {
 }
 
 try {
-    $query = "SELECT * FROM access_logs ORDER BY accessed_at DESC LIMIT 100";
-    $stmt = $db->query($query);
-    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $logs = [];
+    try {
+        $query = "SELECT * FROM access_logs ORDER BY accessed_at DESC LIMIT 100";
+        $stmt = $db->query($query);
+        if ($stmt) {
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (Exception $e) {
+        // Table might not exist for this app, return empty array gracefully
+    }
 
     echo json_encode($logs);
 } catch (Exception $e) {
