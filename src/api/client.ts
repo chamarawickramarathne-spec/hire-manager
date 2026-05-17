@@ -62,6 +62,10 @@ export const apiClient = {
     const response = await axios.get(`${API_BASE_URL}/equipment.php?categories=1`);
     return response.data;
   },
+  getEquipmentTypes: async () => {
+    const response = await axios.get(`${API_BASE_URL}/equipment.php?types=1`);
+    return response.data;
+  },
   createEquipment: async (data: any) => {
     const response = await axios.post(`${API_BASE_URL}/equipment.php`, data);
     return response.data;

@@ -10,10 +10,11 @@ interface EquipmentItem {
   category_id: number;
   category_name?: string;
   type: string;
+  type_name?: string;
   model: string;
   name: string;
   value: number;
-  description: string;
+  description?: string;
   is_active: number;
   created_at: string;
 }
@@ -21,6 +22,7 @@ interface EquipmentItem {
 const Equipment: React.FC = () => {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [types, setTypes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -36,12 +38,14 @@ const Equipment: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [equipData, catData] = await Promise.all([
+      const [equipData, catData, typeData] = await Promise.all([
         apiClient.getEquipment(),
-        apiClient.getEquipmentCategories()
+        apiClient.getEquipmentCategories(),
+        apiClient.getEquipmentTypes()
       ]);
       setEquipmentList(equipData);
       setCategories(catData);
+      setTypes(typeData);
     } catch (error) {
       console.error('Error fetching equipment data:', error);
     } finally {
@@ -93,7 +97,7 @@ const Equipment: React.FC = () => {
 
   const filteredEquipment = equipmentList.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.type_name && item.type_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     item.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.category_name && item.category_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -185,7 +189,7 @@ const Equipment: React.FC = () => {
                         </div>
                         <div>
                           <div style={{ fontWeight: '700', color: 'white', marginBottom: '4px' }}>{item.name}</div>
-                          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.type} • {item.model}</div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{item.type_name || item.type} • {item.model}</div>
                         </div>
                       </div>
                     </td>
@@ -259,6 +263,7 @@ const Equipment: React.FC = () => {
         <EquipmentForm 
           equipment={selectedEquipment} 
           categories={categories}
+          types={types}
           onClose={() => setIsFormOpen(false)}
           onSave={handleSave}
           onError={(msg) => showToast(msg, 'error')}

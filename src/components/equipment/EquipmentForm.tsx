@@ -5,19 +5,13 @@ import { apiClient } from '../../api/client';
 interface EquipmentFormProps {
   equipment?: any;
   categories: any[];
+  types: any[];
   onClose: () => void;
   onSave: () => void;
   onError: (msg: string) => void;
 }
 
-const TYPES = [
-  "Battery", "Continuous Light", "DSLR", "Flashs", "Gimbal", 
-  "Light Modifier", "Mics", "Mirrorless", "Monopod", "Other", 
-  "Prime Lens", "Remote/Trigger", "Slider", "Storage", "Strobe", 
-  "Telephoto Lens", "Tripod", "Video Camera"
-];
-
-const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, onClose, onSave, onError }) => {
+const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, types, onClose, onSave, onError }) => {
   const [formData, setFormData] = useState({
     id: equipment?.id || '',
     category_id: equipment?.category_id || '',
@@ -121,17 +115,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, on
                 <h3 style={{ fontSize: '13px', fontWeight: '700', letterSpacing: '1px', color: 'var(--text-muted)', textTransform: 'uppercase', margin: 0 }}>Type <span style={{ color: '#ef4444' }}>*</span></h3>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '55vh', paddingRight: '8px' }} className="custom-scrollbar">
-                {TYPES.map(t => (
-                  <button type="button" key={t} onClick={() => setFormData({...formData, type: t})}
+                {types.map(t => (
+                  <button type="button" key={t.id} onClick={() => setFormData({...formData, type: t.id.toString()})}
                     style={{
                       padding: '12px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textAlign: 'left',
-                      border: formData.type === t ? '1px solid var(--primary)' : '1px solid var(--card-border)',
-                      background: formData.type === t ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                      color: formData.type === t ? 'white' : 'var(--text-muted)',
+                      border: formData.type == t.id ? '1px solid var(--primary)' : '1px solid var(--card-border)',
+                      background: formData.type == t.id ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                      color: formData.type == t.id ? 'white' : 'var(--text-muted)',
                       transition: 'all 0.2s'
                     }}
                   >
-                    {t}
+                    {t.type}
                   </button>
                 ))}
               </div>

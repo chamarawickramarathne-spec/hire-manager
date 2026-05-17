@@ -22,10 +22,17 @@ try {
             exit;
         }
 
+        if (isset($_GET['types'])) {
+            $stmt = $db->query("SELECT * FROM equipment_types WHERE is_active = 1 ORDER BY id ASC");
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            exit;
+        }
+
         $query = "
-            SELECT e.*, c.name as category_name 
+            SELECT e.*, c.name as category_name, t.type as type_name
             FROM equipment_details e
             LEFT JOIN category_types c ON e.category_id = c.id
+            LEFT JOIN equipment_types t ON e.type = t.id
             ORDER BY e.created_at DESC
         ";
         $stmt = $db->query($query);
