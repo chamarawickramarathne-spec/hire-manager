@@ -11,7 +11,7 @@ import {
   Camera,
   Briefcase,
   Calculator,
-  History
+  History,
 } from "lucide-react";
 import { useAppContext, type AppType } from "../../context/AppContext";
 
@@ -27,25 +27,54 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
   const handleAppChange = (appId: AppType) => {
     setCurrentApp(appId);
     setShowAppSelector(false);
-    
+
     // Automatic navigation based on selected app
-    if (appId === 'calculator') {
-      navigate('/access-logs');
+    if (appId === "calculator") {
+      navigate("/access-logs");
     } else {
-      navigate('/');
+      navigate("/");
     }
   };
 
-  const apps: { id: AppType; name: string; icon: React.ReactNode; color: string }[] = [
-    { id: 'lens_manager', name: 'Lens Booking Pro', icon: <Camera size={18} />, color: '#6366f1' },
-    { id: 'workshop', name: 'Workshop Manager', icon: <Briefcase size={18} />, color: '#ec4899' },
-    { id: 'calculator', name: 'Lens Calculator', icon: <Calculator size={18} />, color: '#10b981' }
+  const apps: {
+    id: AppType;
+    name: string;
+    icon: React.ReactNode;
+    color: string;
+  }[] = [
+    {
+      id: "lens_manager",
+      name: "Lens Booking Pro",
+      icon: <Camera size={18} />,
+      color: "#6366f1",
+    },
+    {
+      id: "workshop",
+      name: "Workshop Manager",
+      icon: <Briefcase size={18} />,
+      color: "#ec4899",
+    },
+    {
+      id: "calculator",
+      name: "Lens Calculator",
+      icon: <Calculator size={18} />,
+      color: "#10b981",
+    },
   ];
 
   const getMenuItems = () => {
-    if (currentApp === 'calculator') {
+    if (currentApp === "calculator") {
       return [
-        { name: "Access Logs", icon: <History size={20} />, path: "/access-logs" },
+        {
+          name: "Access Logs",
+          icon: <History size={20} />,
+          path: "/access-logs",
+        },
+        {
+          name: "Equipment",
+          icon: <Camera size={20} />,
+          path: "/equipment",
+        },
       ];
     }
 
@@ -94,21 +123,21 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
           marginBottom: "24px",
         }}
       >
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: "relative" }}>
           <button
             onClick={() => setShowAppSelector(!showAppSelector)}
             style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              color: 'white',
-              transition: 'all 0.3s'
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid var(--card-border)",
+              borderRadius: "12px",
+              cursor: "pointer",
+              color: "white",
+              transition: "all 0.3s",
             }}
             className="app-selector-btn"
           >
@@ -117,57 +146,85 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
                 width: "32px",
                 height: "32px",
                 borderRadius: "8px",
-                background: apps.find(a => a.id === currentApp)?.color || "var(--primary)",
+                background:
+                  apps.find((a) => a.id === currentApp)?.color ||
+                  "var(--primary)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: "white",
               }}
             >
-              {apps.find(a => a.id === currentApp)?.icon}
+              {apps.find((a) => a.id === currentApp)?.icon}
             </div>
-            <div style={{ textAlign: 'left', flex: 1 }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500', lineHeight: 1 }}>Manage App</div>
-              <div style={{ fontSize: '14px', fontWeight: '700' }}>{appTitle}</div>
+            <div style={{ textAlign: "left", flex: 1 }}>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-muted)",
+                  fontWeight: "500",
+                  lineHeight: 1,
+                }}
+              >
+                Manage App
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: "700" }}>
+                {appTitle}
+              </div>
             </div>
-            <ChevronDown size={16} style={{ transform: showAppSelector ? 'rotate(180deg)' : 'none', transition: '0.3s' }} />
+            <ChevronDown
+              size={16}
+              style={{
+                transform: showAppSelector ? "rotate(180deg)" : "none",
+                transition: "0.3s",
+              }}
+            />
           </button>
 
           {showAppSelector && (
-            <div className="glass shadow-elegant" style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              marginTop: '8px',
-              padding: '8px',
-              borderRadius: '12px',
-              zIndex: 1000,
-              border: '1px solid var(--card-border)',
-              background: 'var(--bg-dark)'
-            }}>
-              {apps.map(app => (
+            <div
+              className="glass shadow-elegant"
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: 0,
+                right: 0,
+                marginTop: "8px",
+                padding: "8px",
+                borderRadius: "12px",
+                zIndex: 1000,
+                border: "1px solid var(--card-border)",
+                background: "var(--bg-dark)",
+              }}
+            >
+              {apps.map((app) => (
                 <button
                   key={app.id}
                   onClick={() => handleAppChange(app.id)}
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 12px',
-                    background: currentApp === app.id ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    color: currentApp === app.id ? 'white' : 'var(--text-muted)',
-                    textAlign: 'left',
-                    transition: '0.2s'
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 12px",
+                    background:
+                      currentApp === app.id
+                        ? "rgba(255, 255, 255, 0.05)"
+                        : "transparent",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    color:
+                      currentApp === app.id ? "white" : "var(--text-muted)",
+                    textAlign: "left",
+                    transition: "0.2s",
                   }}
                   className="app-option"
                 >
                   <div style={{ color: app.color }}>{app.icon}</div>
-                  <span style={{ fontSize: '14px', fontWeight: '500' }}>{app.name}</span>
+                  <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                    {app.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -233,8 +290,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
             color: "var(--text-muted)",
             background: "transparent",
             textAlign: "left",
-            border: 'none',
-            cursor: 'pointer'
+            border: "none",
+            cursor: "pointer",
           }}
         >
           <Settings size={20} />
@@ -253,8 +310,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
             color: "var(--danger)",
             background: "transparent",
             textAlign: "left",
-            border: 'none',
-            cursor: 'pointer'
+            border: "none",
+            cursor: "pointer",
           }}
         >
           <LogOut size={20} />

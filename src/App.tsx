@@ -12,6 +12,7 @@ import Photographers from "./pages/Photographers";
 import Subscriptions from "./pages/Subscriptions";
 import AccessLevels from "./pages/AccessLevels";
 import AccessLogs from "./pages/AccessLogs";
+import Equipment from "./pages/Equipment";
 import Login from "./pages/Login";
 import { useAppContext } from "./context/AppContext";
 
@@ -85,7 +86,16 @@ const App: React.FC = () => {
                 <Route path="/subscriptions" element={<Subscriptions />} />
                 <Route path="/access-levels" element={<AccessLevels />} />
                 <Route path="/access-logs" element={<AccessLogs />} />
-                <Route path="*" element={<Navigate to={currentApp === 'calculator' ? "/access-logs" : "/"} replace />} />
+                <Route path="/equipment" element={<Equipment />} />
+                <Route
+                  path="*"
+                  element={
+                    <Navigate
+                      to={currentApp === "calculator" ? "/access-logs" : "/"}
+                      replace
+                    />
+                  }
+                />
               </Routes>
             </div>
           </div>

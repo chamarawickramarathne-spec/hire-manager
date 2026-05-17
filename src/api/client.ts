@@ -53,5 +53,25 @@ export const apiClient = {
   getAccessLogs: async (app = 'calculator') => {
     const response = await axios.get(`${API_BASE_URL}/access-logs.php?app=${app}`);
     return response.data;
+  },
+  getEquipment: async () => {
+    const response = await axios.get(`${API_BASE_URL}/equipment.php`);
+    return response.data;
+  },
+  getEquipmentCategories: async () => {
+    const response = await axios.get(`${API_BASE_URL}/equipment.php?categories=1`);
+    return response.data;
+  },
+  createEquipment: async (data: any) => {
+    const response = await axios.post(`${API_BASE_URL}/equipment.php`, data);
+    return response.data;
+  },
+  updateEquipment: async (data: any) => {
+    const response = await axios.put(`${API_BASE_URL}/equipment.php`, data);
+    return response.data;
+  },
+  deleteEquipment: async (id: number) => {
+    const response = await axios.delete(`${API_BASE_URL}/equipment.php`, { data: { id } });
+    return response.data;
   }
 };
