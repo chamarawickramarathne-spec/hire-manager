@@ -58,7 +58,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, ty
       paddingTop: '3vh', paddingBottom: '3vh', overflowY: 'auto'
     }}>
       <div className="glass shadow-elegant" style={{
-        width: '100%', maxWidth: '1100px', borderRadius: '24px',
+        width: '100%', maxWidth: '900px', borderRadius: '24px',
         maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         position: 'relative', overflow: 'hidden', margin: '0 auto'
       }}>
@@ -83,7 +83,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, ty
 
         {/* Form Body */}
         <div style={{ padding: '20px 24px 32px 24px', flex: 1, minHeight: 0 }}>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '24px', height: '100%' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '180px 300px 280px', justifyContent: 'center', gap: '24px', height: '100%' }}>
             
             {/* Column 1: Categories */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -114,15 +114,16 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ equipment, categories, ty
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>2</div>
                 <h3 style={{ fontSize: '13px', fontWeight: '700', letterSpacing: '1px', color: 'var(--text-muted)', textTransform: 'uppercase', margin: 0 }}>Type <span style={{ color: '#ef4444' }}>*</span></h3>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '55vh', paddingRight: '8px' }} className="custom-scrollbar">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start', gap: '8px', overflowY: 'auto', maxHeight: '55vh', paddingRight: '8px' }} className="custom-scrollbar">
                 {types.map(t => (
                   <button type="button" key={t.id} onClick={() => setFormData({...formData, type: t.id.toString()})}
                     style={{
-                      padding: '12px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textAlign: 'left',
+                      padding: '10px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textAlign: 'left',
                       border: formData.type == t.id ? '1px solid var(--primary)' : '1px solid var(--card-border)',
                       background: formData.type == t.id ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
                       color: formData.type == t.id ? 'white' : 'var(--text-muted)',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                     }}
                   >
                     {t.type}
