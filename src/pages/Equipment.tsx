@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Camera, RefreshCw } from 'lucide-react';
 import { apiClient } from '../api/client';
 import EquipmentForm from '../components/equipment/EquipmentForm';
+import Toast from '../components/ui/Toast';
+import type { ToastType } from '../components/ui/Toast';
 
 interface EquipmentItem {
   id: number;
@@ -24,6 +26,12 @@ const Equipment: React.FC = () => {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | undefined>();
+  
+  const [toast, setToast] = useState<{message: string, type: ToastType} | null>(null);
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type });
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -45,6 +53,15 @@ const Equipment: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (isFormOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isFormOpen]);
+
   const handleAdd = () => {
     setSelectedEquipment(undefined);
     setIsFormOpen(true);
@@ -59,16 +76,18 @@ const Equipment: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this equipment?')) {
       try {
         await apiClient.deleteEquipment(id);
+        showToast('Equipment deleted successfully', 'success');
         fetchData();
       } catch (error) {
         console.error('Error deleting equipment:', error);
-        alert('Failed to delete equipment.');
+        showToast('Failed to delete equipment', 'error');
       }
     }
   };
 
   const handleSave = () => {
     setIsFormOpen(false);
+    showToast('Equipment saved successfully', 'success');
     fetchData();
   };
 
@@ -242,6 +261,15 @@ const Equipment: React.FC = () => {
           categories={categories}
           onClose={() => setIsFormOpen(false)}
           onSave={handleSave}
+          onError={(msg) => showToast(msg, 'error')}
+        />
+      )}
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
         />
       )}
 
